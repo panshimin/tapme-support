@@ -21,6 +21,8 @@ const pages = [
   ["/zh/privacy/", "隐私政策", "你的游戏，你的隐私。"],
   ["/en/support/", "Support", "A hand with your next move."],
   ["/zh/support/", "游戏支持", "下一步，我们帮你。"],
+  ["/en/terms/", "Terms of use", "Simple rules for playing."],
+  ["/zh/terms/", "用户协议", "简单的使用约定。"],
 ];
 for (const [path, title, heading] of pages) {
   const response = await request(path);

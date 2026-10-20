@@ -1,16 +1,18 @@
 import assert from "node:assert/strict";
 
-export function validateContact({ siteUrl, publisher, supportEmail, policyDate }, now = new Date()) {
+export function validateContact({ siteUrl, publisher, supportEmail, policyDate, termsDate }, now = new Date()) {
   assert.ok(typeof siteUrl === "string" && /^https:\/\/[^/\s]+(\/[^\s]*)?$/.test(siteUrl), "Set the public HTTPS siteUrl in contact.json.");
   assert.ok(typeof publisher === "string" && publisher.trim() && publisher === publisher.trim(), "Set the approved public publisher name in contact.json.");
   assert.ok(!/^(?:todo|tbd|placeholder|待填写|待确认)$/i.test(publisher), "Replace the placeholder publisher.");
   assert.ok(typeof supportEmail === "string" && /^[a-z0-9._+-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i.test(supportEmail), "Set a valid, registered support email in contact.json.");
   const domain = supportEmail.split("@")[1].toLowerCase();
   assert.ok(!/(^|\.)(example\.(com|net|org)|example|invalid|test|localhost)$/.test(domain), "Replace the placeholder email with a real support mailbox.");
-  assert.ok(typeof policyDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(policyDate), "Set an ISO policy effective date.");
-  const date = new Date(`${policyDate}T00:00:00Z`);
-  assert.ok(Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === policyDate, "The policy effective date must be a real calendar date.");
-  assert.ok(policyDate <= now.toISOString().slice(0, 10), "The published policy must already be effective.");
+  for (const [name, value] of [["policy", policyDate], ["terms", termsDate]]) {
+    assert.ok(typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value), `Set an ISO ${name} effective date.`);
+    const date = new Date(`${value}T00:00:00Z`);
+    assert.ok(Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value, `The ${name} effective date must be a real calendar date.`);
+    assert.ok(value <= now.toISOString().slice(0, 10), `The published ${name} must already be effective.`);
+  }
 }
 
 const escapeHTML = (value) => value.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#x27;" })[c]);
