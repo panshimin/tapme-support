@@ -49,7 +49,7 @@ export const marketing = {
       ["02", "放下之后，还能接着玩。", "当前棋盘和个人纪录保存在设备上。回来接着思考下一步，试着刷新自己的最高纪录。"],
       ["03", "调成你喜欢的样子。", "在设置里选择浅色或深色外观，调整音效与触感，还可以随时切换游戏语言。"],
     ],
-    languagesTitle: "熟悉的语言，同样的合并乐趣。", languagesIntro: "支持在 App 内切换 20 种语言。",
+    languagesTitle: "熟悉的语言，<br>同样的合并乐趣。", languagesIntro: "支持在 App 内切换 20 种语言。",
     closing: "这小小的一步，<br>还能合出多大的数字？", closingBody: "一盘彩色数字，几条简单规则，等你创造下一个纪录。", closingLink: "查看完整玩法", support: "需要一点帮助？", supportBody: "查看常见问题、联系开发者，或了解我们如何处理你的数据。",
     footerLinks: ["帮助与支持", "隐私政策", "用户协议"], footerLine: "给自己一小段游戏时光。",
   },
