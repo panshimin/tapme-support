@@ -2,12 +2,12 @@
   "name": "tapme-support",
   "private": true,
   "type": "module",
-  "description": "Support and privacy pages for TapMe: Number Merge, published with GitHub Pages.",
+  "description": "Marketing, support, and privacy pages for TapMe: Number Merge, published with GitHub Pages.",
   "engines": { "node": ">=20" },
   "scripts": {
     "build": "node build.mjs",
     "build:draft": "node build.mjs --draft",
-    "serve": "python3 -m http.server 8765 -d dist",
+    "serve": "node serve.mjs",
     "check": "node check.mjs --release"
   }
 }

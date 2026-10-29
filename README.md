@@ -1,17 +1,20 @@
-# TapMe: Number Merge — Support & Privacy
+# TapMe: Number Merge — Official website
 
-Static support and privacy-policy pages for the iPhone game **TapMe: Number Merge**, published with GitHub Pages.
+Bilingual marketing, support, privacy-policy, and terms pages for the iPhone game **TapMe: Number Merge**, published with GitHub Pages.
 
 Live site: https://panshimin.github.io/tapme-support/
 
 | Page | English | 简体中文 |
 | --- | --- | --- |
+| Game introduction | `/` | `/zh/` |
 | Privacy policy | `/en/privacy/` | `/zh/privacy/` |
 | Support | `/en/support/` | `/zh/support/` |
 | Terms of use | `/en/terms/` | `/zh/terms/` |
 
 ## Layout
 
+- `marketing.mjs`, `marketing.css`, `marketing.js` — English/Chinese product pages and a small interactive merge example.
+- `assets/game-en.png`, `assets/game-zh.png` — unmodified screenshots captured from the iPhone app.
 - `content.mjs` — privacy and support copy (English and Simplified Chinese).
 - `terms.mjs` — terms-of-use copy.
 - `contact.json` — `siteUrl`, `publisher`, `supportEmail`, `policyDate`, `termsDate`. Only approved public details go here.
@@ -23,7 +26,7 @@ Live site: https://panshimin.github.io/tapme-support/
 
 ```bash
 npm run build          # generate dist/
-npm run serve          # preview at http://127.0.0.1:8765/
+npm run serve          # preview at http://127.0.0.1:8765/tapme-support/
 npm run check          # verify the live site after a deploy
 ```
 
@@ -33,3 +36,7 @@ npm run check          # verify the live site after a deploy
 2. Run `npm run build` locally to confirm it passes.
 3. Commit and push to `main`; GitHub Actions deploys automatically.
 4. Run `npm run check` once the deploy finishes.
+
+## App Store links
+
+The site introduces the game without claiming store availability. Add an App Store download link only after the public product page is available. App Store Connect can use the site root for Marketing URL, and `/en/support/` or `/zh/support/` for Support URL.

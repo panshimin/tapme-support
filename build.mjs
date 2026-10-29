@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { appName, content } from "./content.mjs";
 import { terms } from "./terms.mjs";
+import { marketing, marketingBody } from "./marketing.mjs";
 import { validateContact } from "./validate.mjs";
 
 const root = dirname(fileURLToPath(import.meta.url));
@@ -14,6 +15,7 @@ const contact = JSON.parse(readFileSync(join(root, "contact.json"), "utf8"));
 if (!draft) validateContact(contact);
 const { publisher, supportEmail, policyDate, termsDate } = contact;
 const siteUrl = contact.siteUrl.replace(/\/+$/, "");
+const basePath = new URL(siteUrl).pathname.replace(/\/+$/, "");
 
 const LANGS = ["en", "zh"];
 const PAGES = ["privacy", "support", "terms"];
@@ -32,7 +34,7 @@ function meta(lang, page) {
   }[page];
 }
 
-function head({ lang, title, description, canonical, image, alternates = [] }) {
+function head({ lang, title, description, canonical, image, alternates = [], landing = false }) {
   return `<!doctype html>
 <html lang="${htmlLang(lang)}">
 <head>
@@ -44,7 +46,8 @@ function head({ lang, title, description, canonical, image, alternates = [] }) {
 ${alternates.map((a) => `<link rel="alternate" hreflang="${a.hreflang}" href="${a.href}">`).join("\n")}
 <link rel="icon" href="${siteUrl}/app-icon.png" type="image/png">
 <link rel="apple-touch-icon" href="${siteUrl}/app-icon.png">
-<link rel="stylesheet" href="${siteUrl}/styles.css">
+<link rel="stylesheet" href="${basePath}/styles.css">
+${landing ? `<link rel="stylesheet" href="${basePath}/marketing.css">` : ""}
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="${esc(appName)}">
 <meta property="og:title" content="${esc(title)}">
@@ -115,30 +118,23 @@ ${contactBlock}
 `;
 }
 
-function homePage() {
-  const title = `${appName} — Support & Privacy`;
-  const description = "Official help, game rules, contact information, privacy policy, and terms of use for TapMe: Number Merge.";
-  const card = (cls, number, en, zh, blurb, page) => `<article class="card ${cls}"><span class="number">${number}</span><h2>${esc(en)} <span lang="zh-Hans">${esc(zh)}</span></h2><p>${blurb}</p><div class="card-links"><a href="en/${page}/">English <span aria-hidden="true">↗</span></a><a href="zh/${page}/" lang="zh-Hans">简体中文 <span aria-hidden="true">↗</span></a></div></article>`;
-  return head({ lang: "en", title, description, canonical: `${siteUrl}/`, image: `${siteUrl}/og.jpg` }) + `<main class="home">
-<header class="brand"><img src="app-icon.png" width="48" height="48" alt=""><span>TapMe <small>Number Merge</small></span></header>
-<div class="hero"><p class="eyebrow">THE TAPME HELP DESK · 帮助中心</p><h1>A little help.<br><span>Back to play.</span></h1><p class="intro">Everything you need to know about your game,<br class="desktop"> your progress, and your privacy.</p><p class="intro-cn" lang="zh-Hans">了解玩法、找回游戏节奏，也了解你的数据。</p></div>
-<section class="cards" aria-label="Help, privacy, and terms">
-${card("", "01 / PLAY", "Support", "游戏支持", "Simple rules. Helpful answers.<br>A direct line when you need us.", "support")}
-${card("privacy-card", "02 / PRIVACY", "Your privacy", "隐私政策", "Your game stays on your device.<br>Read exactly how data is handled.", "privacy")}
-${card("terms-card", "03 / TERMS", "Terms of use", "用户协议", "The license and the few rules<br>that apply when you play.", "terms")}
-</section>
-<footer><span>${esc(appName)}${publisher ? ` · ${esc(publisher)}` : ""}</span><span>Made for a moment of play.</span></footer>
-</main>
-</body>
-</html>
-`;
+function homePage(lang = "en") {
+  const c = marketing[lang];
+  const canonical = `${siteUrl}/${lang === "zh" ? "zh/" : ""}`;
+  const alternates = [
+    { hreflang: "en", href: `${siteUrl}/` },
+    { hreflang: "zh-Hans", href: `${siteUrl}/zh/` },
+    { hreflang: "x-default", href: `${siteUrl}/` },
+  ];
+  return head({ lang, title: c.title, description: c.description, canonical, image: `${siteUrl}/app-icon.png`, alternates, landing: true })
+    + marketingBody({ lang, basePath, publisher, supportEmail, esc }) + "\n</body>\n</html>\n";
 }
 
 function notFoundPage() {
   const title = `Page not found — ${appName}`;
   return head({ lang: "en", title, description: "This page does not exist.", canonical: `${siteUrl}/404.html` }) + `<main class="document">
 <header class="topbar"><a href="${siteUrl}/" class="brand"><img src="${siteUrl}/app-icon.png" width="40" height="40" alt=""><span>TapMe <small>Number Merge</small></span></a></header>
-<div class="doc-heading"><p class="eyebrow">404</p><h1>Page not found<br><span lang="zh-Hans">页面不存在</span></h1><p><a href="${siteUrl}/">Help center · 帮助中心</a></p></div>
+<div class="doc-heading"><p class="eyebrow">404</p><h1>Page not found<br><span lang="zh-Hans">页面不存在</span></h1><p><a href="${siteUrl}/">TapMe home · 游戏首页</a></p></div>
 </main>
 </body>
 </html>
@@ -149,13 +145,16 @@ rmSync(out, { recursive: true, force: true });
 mkdirSync(out, { recursive: true });
 writeFileSync(join(out, "index.html"), homePage());
 writeFileSync(join(out, "404.html"), notFoundPage());
-const paths = ["/"];
+mkdirSync(join(out, "zh"), { recursive: true });
+writeFileSync(join(out, "zh", "index.html"), homePage("zh"));
+const paths = ["/", "/zh/"];
 for (const lang of LANGS) for (const page of PAGES) {
   mkdirSync(join(out, lang, page), { recursive: true });
   writeFileSync(join(out, lang, page, "index.html"), docPage(lang, page));
   paths.push(`/${lang}/${page}/`);
 }
-copyFileSync(join(root, "styles.css"), join(out, "styles.css"));
+for (const file of ["styles.css", "marketing.css", "marketing.js"]) copyFileSync(join(root, file), join(out, file));
+for (const file of ["game-en.png", "game-zh.png"]) copyFileSync(join(root, "assets", file), join(out, file));
 copyFileSync(join(root, "assets", "app-icon.png"), join(out, "app-icon.png"));
 copyFileSync(join(root, "assets", "og.jpg"), join(out, "og.jpg"));
 writeFileSync(join(out, ".nojekyll"), "");

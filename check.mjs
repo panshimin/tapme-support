@@ -35,10 +35,25 @@ for (const [path, title, heading] of pages) {
   assert.ok(!/<meta[^>]+(?:property="og:image"|name="twitter:image")/.test(html), `${path}: no inherited image`);
   console.log(`OK ${path}`);
 }
-const home = await request("/");
-assert.equal(home.status, 200, "home");
-assert.ok((await home.text()).includes('property="og:image"'), "home: Open Graph image");
-console.log("OK /");
+for (const [path, title, lang] of [["/", "A little tap.", "en"], ["/zh/", "轻轻一点，", "zh"]]) {
+  const home = await request(path);
+  assert.equal(home.status, 200, path);
+  const html = await home.text();
+  if (release) validatePublicPage(home, html, path, contact);
+  assert.ok(html.includes(title), `${path}: marketing heading`);
+  assert.ok(html.includes('property="og:image"'), `${path}: Open Graph image`);
+  assert.ok(html.includes(`game-${lang}.png`), `${path}: actual game screenshot`);
+  for (const page of ["support", "privacy", "terms"]) {
+    assert.ok(html.includes(`/${lang}/${page}/`), `${path}: ${page} link`);
+  }
+  console.log(`OK ${path}`);
+}
+for (const path of ["/marketing.css", "/marketing.js", "/game-en.png", "/game-zh.png"]) {
+  const response = await request(path);
+  assert.equal(response.status, 200, path);
+  assert.ok((await response.arrayBuffer()).byteLength > 0, `${path}: nonempty asset`);
+  console.log(`OK ${path}`);
+}
 const missing = await request("/fr/privacy/");
 assert.ok(missing.status === 404, `unsupported language should 404, got ${missing.status}`);
 console.log("OK unsupported language returns 404");
